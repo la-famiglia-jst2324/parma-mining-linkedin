@@ -12,9 +12,7 @@ dependencies:
   - setuptools >=61 # pyproject.toml support
   # Development
   - types-pyyaml
-  - requests
   - python-dotenv >=1.0.0
-  - python-multipart
   # Testing
   - pytest >=6 # --import-mode option
   - pytest-cov
