@@ -10,7 +10,7 @@ class CompanyModel(BaseModel):
     industry_code: str
     description: str
     website: str
-    phone: str  # indicate optional
+    phone: str
     specialities: str
     size: str
     logo: str

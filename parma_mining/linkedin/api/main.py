@@ -2,6 +2,7 @@
 from fastapi import FastAPI, status
 from parma_mining.linkedin.model import CompanyModel
 from parma_mining.linkedin.pb_client import PhantombusterClient
+import json
 
 app = FastAPI()
 
@@ -13,6 +14,13 @@ pb_client = PhantombusterClient()
 def root():
     """Root endpoint for the API."""
     return {"welcome": "at parma-mining-linkedin"}
+
+
+# initialization endpoint
+@app.get("/initialize", status_code=200)
+def initialize() -> str:
+    """Initialization endpoint for the API."""
+    return json.dumps(pb_client.initialize_normalization_map())
 
 
 # endpoint for collecting results

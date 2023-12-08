@@ -3,9 +3,13 @@ import httpx
 from dotenv import load_dotenv
 import json
 from parma_mining.linkedin.model import CompanyModel
+from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
+from typing import List, Dict, Union
 
 
 class PhantombusterClient:
+    normalization_map: Dict[str, Union[str, List[Dict[str, str]]]] = {}
+
     def __init__(self):
         load_dotenv()
         self.launch_url = str(os.getenv("PHANTOMBUSTER_API_LAUNCH_ENDPOINT"))
@@ -14,6 +18,10 @@ class PhantombusterClient:
         self.company_scraper = str(os.getenv("COMPANY_SCRAPER_AGENT_ID"))
         self.url_finder = str(os.getenv("URL_FINDER_AGENT_ID"))
         self.linkedin_session = None
+
+    def initialize_normalization_map(self) -> dict:
+        self.normalization_map = LinkedinNormalizationMap().get_normalization_map()
+        return self.normalization_map
 
     def launch_url_finder(self) -> str:
         payload = {"id": self.url_finder}
@@ -81,7 +89,3 @@ class PhantombusterClient:
             )
             result.append(company)
         return result
-
-    def update_linkedin_session(self):
-        # TODO: implement
-        pass
