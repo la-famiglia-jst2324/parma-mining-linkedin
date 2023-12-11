@@ -17,7 +17,7 @@ install:
 	# pip install -e . # Install the project in editable mode
 
 dev:
-	uvicorn parma_mining.linkedin.api:app --reload
+	uvicorn parma_mining.linkedin.api:app --port 8888 --reload
 
 test:
 	pytest tests/

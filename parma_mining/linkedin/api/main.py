@@ -2,11 +2,15 @@
 from fastapi import FastAPI, status
 from parma_mining.linkedin.model import CompanyModel
 from parma_mining.linkedin.pb_client import PhantombusterClient
+from parma_mining.linkedin.api.analytics_client import AnalyticsClient
 import json
 
 app = FastAPI()
-
+source_id = (
+    "1"  # for now, we must define different module ids for different modules, formally
+)
 pb_client = PhantombusterClient()
+analytics_client = AnalyticsClient()
 
 
 # root endpoint
@@ -20,11 +24,23 @@ def root():
 @app.get("/initialize", status_code=200)
 def initialize() -> str:
     """Initialization endpoint for the API."""
-    return json.dumps(pb_client.initialize_normalization_map())
+    # init frequency
+    time = "weekly"
+    normalization_map = pb_client.initialize_normalization_map()
+    # register the measurements to analytics
+    analytics_client.register_measurements(
+        normalization_map, source_module_id=source_id
+    )
+
+    # set and return results
+    results = {}
+    results["frequency"] = time
+    results["normalization_map"] = str(normalization_map)
+    return json.dumps(results)
 
 
 # endpoint for collecting results
-@app.get("/get_company_info", status_code=status.HTTP_200_OK)
+@app.get("/companies", status_code=status.HTTP_200_OK)
 def get_company_info() -> list[CompanyModel]:
     results = pb_client.collect_result()
     return results
