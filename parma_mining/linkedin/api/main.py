@@ -1,6 +1,6 @@
 """Main entrypoint for the API routes in of parma-analytics."""
-from fastapi import FastAPI, status
-from parma_mining.linkedin.model import CompanyModel
+from fastapi import FastAPI, HTTPException, status
+from parma_mining.linkedin.model import CompanyModel, DiscoveryModel, CompaniesRequest
 from parma_mining.linkedin.pb_client import PhantombusterClient
 from parma_mining.linkedin.api.analytics_client import AnalyticsClient
 import json
@@ -20,17 +20,16 @@ def root():
     return {"welcome": "at parma-mining-linkedin"}
 
 
-# initialization endpoint
 @app.get("/initialize", status_code=200)
-def initialize() -> str:
+def initialize(source_id: int) -> str:
     """Initialization endpoint for the API."""
     # init frequency
     time = "weekly"
     normalization_map = pb_client.initialize_normalization_map()
     # register the measurements to analytics
-    analytics_client.register_measurements(
+    normalization_map = analytics_client.register_measurements(
         normalization_map, source_module_id=source_id
-    )
+    )[1]
 
     # set and return results
     results = {}
@@ -40,21 +39,44 @@ def initialize() -> str:
 
 
 # endpoint for collecting results
-@app.get("/companies", status_code=status.HTTP_200_OK)
-def get_company_info() -> list[CompanyModel]:
-    results = pb_client.collect_result()
-    return results
-
-
-# endpoint for launching the url finder agent
-@app.get("/launch_url_finder", status_code=status.HTTP_200_OK)
-def launch_url_finder() -> str:
-    response = pb_client.launch_url_finder()
-    return response
+@app.post(
+    "/companies",
+    response_model=list[CompanyModel],
+    status_code=status.HTTP_200_OK,
+)
+def get_company_info(companies: CompaniesRequest) -> list[CompanyModel]:
+    """Company details endpoint for the API."""
+    company_urls = []
+    company_ids = []
+    for company in companies.companies:
+        # iterate all input items and find a linkedin url
+        url_exist = False
+        for field in companies.companies[company]:
+            for url in companies.companies[company][field]:
+                if "linkedin.com/" in url:
+                    url_exist = True
+                    company_urls.append(url)
+                    company_ids.append(company)
+                    break
+        if not url_exist:
+            raise Exception("No linkedin url found for the company")
+    # launch the company scraper agent
+    print(company_urls)
+    company_details = pb_client.scrape_company(company_urls, company_ids)
+    for company in company_details:
+        try:
+            analytics_client.feed_raw_data(company)
+        except HTTPException:
+            raise HTTPException("Can't send crawling data to the Analytics.")
+    return company_details
 
 
 # endpoint for launching the company scraper agent
-@app.get("/launch_company_scraper", status_code=status.HTTP_200_OK)
-def launch_company_scraper() -> str:
-    response = pb_client.launch_company_scraper()
+@app.get(
+    "/discover",
+    response_model=list[DiscoveryModel],
+    status_code=status.HTTP_200_OK,
+)
+def discover(query: str):
+    response = pb_client.discover_company(query)
     return response

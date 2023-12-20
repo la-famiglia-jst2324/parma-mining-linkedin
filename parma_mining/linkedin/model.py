@@ -1,7 +1,9 @@
+import json
 from pydantic import BaseModel
 
 
 class CompanyModel(BaseModel):
+    id: str
     name: str
     data_source: str
     link: str
@@ -26,3 +28,18 @@ class CompanyModel(BaseModel):
     sales_navigator_link: str
     query: str
     timestamp: str
+
+    def updated_model_dump(self) -> str:
+        """Dump the CompanyModel instance to a JSON string."""
+        # Convert other objects to string representation
+        json_serializable_dict = self.model_dump()
+        return json.dumps(json_serializable_dict, default=str)
+
+
+class DiscoveryModel(BaseModel):
+    name: str | None
+    url: str | None
+
+
+class CompaniesRequest(BaseModel):
+    companies: dict[str, dict[str, list[str]]]
