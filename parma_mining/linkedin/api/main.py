@@ -6,9 +6,7 @@ from parma_mining.linkedin.api.analytics_client import AnalyticsClient
 import json
 
 app = FastAPI()
-source_id = (
-    "1"  # for now, we must define different module ids for different modules, formally
-)
+
 pb_client = PhantombusterClient()
 analytics_client = AnalyticsClient()
 
@@ -78,5 +76,8 @@ def get_company_info(companies: CompaniesRequest) -> list[CompanyModel]:
     status_code=status.HTTP_200_OK,
 )
 def discover(query: str):
-    response = pb_client.discover_company(query)
+    try:
+        response = pb_client.discover_company(query)
+    except HTTPException:
+        raise HTTPException("Can't run discovery agent successfully.")
     return response
