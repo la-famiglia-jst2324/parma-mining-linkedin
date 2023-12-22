@@ -6,8 +6,8 @@ import urllib.parse
 import httpx
 from dotenv import load_dotenv
 
-from parma_mining.mining_common.const import HTTP_201, HTTP_404
 from parma_mining.linkedin.model import CompanyModel
+from parma_mining.mining_common.const import HTTP_201, HTTP_404
 
 
 class AnalyticsClient:
@@ -83,5 +83,5 @@ class AnalyticsClient:
             pass
         else:
             raise Exception(
-                f"API request failed with status code {response.status_code}"
+                f"API request is failed with status code {response.status_code}"
             )

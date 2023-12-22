@@ -13,8 +13,7 @@ client = TestClient(app)
 
 @pytest.fixture
 def mock_pb_client(mocker) -> MagicMock:
-    """Mocking the PhantombusterClient's method to avoid actual API calls during
-    testing."""
+    """Mocking the PhantombusterClient's method to avoid actual API calls."""
     mock = mocker.patch(
         "parma_mining.linkedin.api.main.PhantombusterClient.scrape_company"
     )
@@ -102,6 +101,5 @@ def test_get_organization_details_bad_request(mocker):
             },
         }
     }
-
     response = client.post("/companies", json=payload)
     assert response.status_code == HTTP_404

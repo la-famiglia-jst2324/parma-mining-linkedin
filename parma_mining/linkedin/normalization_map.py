@@ -121,5 +121,6 @@ class LinkedinNormalizationMap:
         ],
     }
 
-    def get_normalization_map(self):
+    def get_normalization_map(self) -> dict:
+        """Return the normalization map."""
         return self.map_json

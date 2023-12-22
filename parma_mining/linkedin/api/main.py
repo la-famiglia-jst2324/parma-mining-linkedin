@@ -1,14 +1,18 @@
 """Main entrypoint for the API routes in of parma-analytics."""
-from fastapi import FastAPI, HTTPException, status
-from parma_mining.linkedin.model import CompanyModel, DiscoveryModel, CompaniesRequest
-from parma_mining.linkedin.pb_client import PhantombusterClient
-from parma_mining.linkedin.api.analytics_client import AnalyticsClient
 import json
+
+from fastapi import FastAPI, HTTPException, status
+
+from parma_mining.linkedin.api.analytics_client import AnalyticsClient
+from parma_mining.linkedin.model import CompaniesRequest, CompanyModel, DiscoveryModel
+from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
+from parma_mining.linkedin.pb_client import PhantombusterClient
 
 app = FastAPI()
 
 pb_client = PhantombusterClient()
 analytics_client = AnalyticsClient()
+normalization = LinkedinNormalizationMap()
 
 
 # root endpoint
@@ -23,7 +27,7 @@ def initialize(source_id: int) -> str:
     """Initialization endpoint for the API."""
     # init frequency
     time = "weekly"
-    normalization_map = pb_client.initialize_normalization_map()
+    normalization_map = normalization.get_normalization_map()
     # register the measurements to analytics
     normalization_map = analytics_client.register_measurements(
         normalization_map, source_module_id=source_id

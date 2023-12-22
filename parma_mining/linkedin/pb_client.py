@@ -1,29 +1,23 @@
 import os
 import time
+
 import httpx
 from dotenv import load_dotenv
-import json
+
 from parma_mining.linkedin.model import CompanyModel, DiscoveryModel
-from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
-from typing import List, Dict, Union
+from parma_mining.mining_common.const import HTTP_200
 
 
 class PhantombusterClient:
-    normalization_map: Dict[str, Union[str, List[Dict[str, str]]]] = {}
-
     def __init__(self):
         load_dotenv()
-        self.launch_url = str(os.getenv("PHANTOMBUSTER_API_LAUNCH_ENDPOINT"))
-        self.fetch_url = str(os.getenv("PHANTOMBUSTER_API_FETCH_ENDPOINT"))
-        self.container_fetch_url = str(os.getenv("CONTAINER_FETCH_ENDPOINT"))
-        self.key = str(os.getenv("PHANTOMBUSTER_API_KEY"))
-        self.company_scraper = str(os.getenv("COMPANY_SCRAPER_AGENT_ID"))
-        self.discovery = str(os.getenv("DISCOVERY_AGENT_ID"))
-        self.cookie = str(os.getenv("LINKEDIN_SESSION_COOKIE"))
-
-    def initialize_normalization_map(self) -> dict:
-        self.normalization_map = LinkedinNormalizationMap().get_normalization_map()
-        return self.normalization_map
+        self.launch_url = str(os.getenv("PHANTOMBUSTER_API_LAUNCH_ENDPOINT") or "")
+        self.fetch_url = str(os.getenv("PHANTOMBUSTER_API_FETCH_ENDPOINT") or "")
+        self.container_fetch_url = str(os.getenv("CONTAINER_FETCH_ENDPOINT") or "")
+        self.key = str(os.getenv("PHANTOMBUSTER_API_KEY") or "")
+        self.company_scraper = str(os.getenv("COMPANY_SCRAPER_AGENT_ID") or "")
+        self.discovery = str(os.getenv("DISCOVERY_AGENT_ID") or "")
+        self.cookie = str(os.getenv("LINKEDIN_SESSION_COOKIE") or "")
 
     def discover_company(self, query: str) -> list[DiscoveryModel]:
         # Launch the company discovery agent
@@ -36,10 +30,11 @@ class PhantombusterClient:
         container_id = str(response.json()["containerId"])
         container_fetch_url = self.container_fetch_url + "?id=" + container_id
 
-        # Check the status of the container if it is done, go ahead, if it is not wait for 10 seconds and check again
+        # Check the status of the container if it is done, go ahead, if it is not wait
+        # for 10 seconds and check again
         while True:
             response = httpx.get(container_fetch_url, headers=headers)
-            if response.status_code == 200:
+            if response.status_code == HTTP_200:
                 if response.json()["status"] == "finished":
                     break
             time.sleep(10)
@@ -70,7 +65,7 @@ class PhantombusterClient:
             "argument": {
                 "companies": urls,
                 "sessionCookie": self.cookie,
-                "csvName": "companies",  # must be important
+                "csvName": "companies",
             },
             "id": self.company_scraper,
         }
@@ -80,10 +75,11 @@ class PhantombusterClient:
         # get details of the container
         container_id = str(response.json()["containerId"])
         container_fetch_url = self.container_fetch_url + "?id=" + container_id
-        # Check the status of the container if it is done, go ahead, if it is not wait for 10 seconds and check again
+        # Check the status of the container if it is done, go ahead, if it is
+        # not wait for 10 seconds and check again
         while True:
             response = httpx.get(container_fetch_url, headers=headers)
-            if response.status_code == 200:
+            if response.status_code == HTTP_200:
                 if response.json()["status"] == "finished":
                     break
             time.sleep(10)
@@ -114,7 +110,7 @@ class PhantombusterClient:
         result = []
         if len(output) != len(ids):
             raise Exception(
-                "Number of companies in the output is not equal to the number of companies in the input"
+                "Company coun in the output is not equal to company count in the input"
             )
         for item in output:
             company = CompanyModel.model_validate(
