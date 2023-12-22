@@ -8,7 +8,6 @@ from parma_mining.linkedin.model import CompaniesRequest, CompanyModel, Discover
 from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
 from parma_mining.linkedin.pb_client import PhantombusterClient
 
-
 app = FastAPI()
 
 pb_client = PhantombusterClient()
@@ -80,6 +79,7 @@ def get_company_info(companies: CompaniesRequest) -> list[CompanyModel]:
     status_code=status.HTTP_200_OK,
 )
 def discover(query: str):
+    """Discovery endpoint for the API."""
     try:
         response = pb_client.discover_company(query)
     except HTTPException:

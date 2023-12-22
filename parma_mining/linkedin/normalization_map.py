@@ -1,5 +1,12 @@
-# This class represents our normalization map, will be used at initialization endpoint
+"""Module for normalization map.
+
+This module contains the normalization map for the Linkedin module.
+"""
+
+
 class LinkedinNormalizationMap:
+    """Class for normalization map."""
+
     map_json = {
         "Source": "Linkedin",
         "Mappings": [

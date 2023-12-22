@@ -1,3 +1,7 @@
+"""Module for communicating with the Phantombuster API.
+
+This module communicates with the Phantombuster API to discover and scrape
+"""
 import os
 import time
 
@@ -9,7 +13,10 @@ from parma_mining.mining_common.const import HTTP_200
 
 
 class PhantombusterClient:
+    """Class for communicating with the Phantombuster API."""
+
     def __init__(self):
+        """Initialize the PhantombusterClient class."""
         load_dotenv()
         self.launch_url = str(os.getenv("PHANTOMBUSTER_API_LAUNCH_ENDPOINT") or "")
         self.fetch_url = str(os.getenv("PHANTOMBUSTER_API_FETCH_ENDPOINT") or "")
@@ -20,6 +27,7 @@ class PhantombusterClient:
         self.cookie = str(os.getenv("LINKEDIN_SESSION_COOKIE") or "")
 
     def discover_company(self, query: str) -> list[DiscoveryModel]:
+        """Discover a company."""
         # Launch the company discovery agent
         payload = {
             "argument": {"queries": [query], "csvName": "result"},
@@ -61,6 +69,7 @@ class PhantombusterClient:
         ]
 
     def scrape_company(self, urls: list[str], ids: list[str]) -> list[CompanyModel]:
+        """Scrape a company for details."""
         payload = {
             "argument": {
                 "companies": urls,
@@ -87,6 +96,7 @@ class PhantombusterClient:
         return self.collect_result(ids)
 
     def collect_result(self, ids: list[str]) -> list[CompanyModel]:
+        """Collect the result of the company scraper agent."""
         fetch_url = self.fetch_url + "?id=" + self.company_scraper
 
         s3_url = "https://phantombuster.s3.amazonaws.com/{orgS3Folder}/{s3Folder}/{filename}.json"

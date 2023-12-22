@@ -1,4 +1,7 @@
-# The duty of this file is to make necessary calls to Analytics API
+"""Module for sending data to analytics.
+
+This module sends normalization data and raw data to analytics.
+"""
 import json
 import os
 import urllib.parse
@@ -9,8 +12,12 @@ from dotenv import load_dotenv
 from parma_mining.linkedin.model import CompanyModel
 from parma_mining.mining_common.const import HTTP_201, HTTP_404
 
+# create a docstring for the class
+
 
 class AnalyticsClient:
+    """Class for sending data to analytics."""
+
     load_dotenv()
     analytics_base = str(os.getenv("ANALYTICS_BASE_URL") or "")
 
@@ -18,6 +25,7 @@ class AnalyticsClient:
     feed_raw_url = urllib.parse.urljoin(analytics_base, "/feed-raw-data")
 
     def send_post_request(self, data):
+        """Send a post request to the analytics API."""
         api_endpoint = self.measurement_url
         headers = {
             "Content-Type": "application/json",
@@ -32,6 +40,7 @@ class AnalyticsClient:
             )
 
     def register_measurements(self, mapping, parent_id=None, source_module_id=None):
+        """Register measurements to analytics."""
         result = []
         for field_mapping in mapping["Mappings"]:
             measurement_data = {
@@ -63,6 +72,7 @@ class AnalyticsClient:
         return result, mapping
 
     def feed_raw_data(self, company: CompanyModel):
+        """Feed raw data to analytics."""
         api_endpoint = self.feed_raw_url
         headers = {
             "Content-Type": "application/json",

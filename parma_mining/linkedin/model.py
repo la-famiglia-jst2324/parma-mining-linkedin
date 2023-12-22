@@ -1,8 +1,15 @@
+"""Data models for the LinkedIn module.
+
+This module contains the data models for the LinkedIn module.
+"""
 import json
+
 from pydantic import BaseModel
 
 
 class CompanyModel(BaseModel):
+    """Data model for a company."""
+
     id: str
     name: str
     data_source: str
@@ -37,9 +44,13 @@ class CompanyModel(BaseModel):
 
 
 class DiscoveryModel(BaseModel):
+    """Data model for a company discovery."""
+
     name: str | None
     url: str | None
 
 
 class CompaniesRequest(BaseModel):
+    """Data model for a company request."""
+
     companies: dict[str, dict[str, list[str]]]
