@@ -8,6 +8,7 @@ from parma_mining.linkedin.model import CompaniesRequest, CompanyModel, Discover
 from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
 from parma_mining.linkedin.pb_client import PhantombusterClient
 
+
 app = FastAPI()
 
 pb_client = PhantombusterClient()
@@ -15,8 +16,7 @@ analytics_client = AnalyticsClient()
 normalization = LinkedinNormalizationMap()
 
 
-# root endpoint
-@app.get("/", status_code=200)
+@app.get("/", status_code=status.HTTP_200_OK)
 def root():
     """Root endpoint for the API."""
     return {"welcome": "at parma-mining-linkedin"}
