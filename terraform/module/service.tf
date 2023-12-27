@@ -36,10 +36,6 @@ resource "google_cloud_run_service" "parma_mining_linkedin_cloud_run" {
           container_port = 8080
         }
         env {
-          name  = "FIREBASE_ADMIN_SDK"
-          value = var.FIREBASE_ADMIN_SDK
-        }
-        env {
           name  = "ANALYTICS_BASE_URL"
           value = var.ANALYTICS_BASE_URL
         }

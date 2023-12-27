@@ -33,6 +33,5 @@ module "main" {
   env              = "prod"
   project          = local.project
   region           = local.region
-  FIREBASE_ADMIN_SDK = var.FIREBASE_ADMIN_SDK
   ANALYTICS_BASE_URL = var.ANALYTICS_BASE_URL
 }
