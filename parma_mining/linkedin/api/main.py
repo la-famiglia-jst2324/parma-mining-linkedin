@@ -1,5 +1,6 @@
 """Main entrypoint for the API routes in of parma-analytics."""
 import json
+import logging
 
 from fastapi import FastAPI, HTTPException, status
 
@@ -7,6 +8,11 @@ from parma_mining.linkedin.api.analytics_client import AnalyticsClient
 from parma_mining.linkedin.model import CompaniesRequest, CompanyModel, DiscoveryModel
 from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
 from parma_mining.linkedin.pb_client import PhantombusterClient
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
 
 app = FastAPI()
 
@@ -18,6 +24,7 @@ normalization = LinkedinNormalizationMap()
 @app.get("/", status_code=status.HTTP_200_OK)
 def root():
     """Root endpoint for the API."""
+    logger.debug("Root endpoint called")
     return {"welcome": "at parma-mining-linkedin"}
 
 
@@ -60,15 +67,19 @@ def get_company_info(companies: CompaniesRequest) -> list[CompanyModel]:
                     company_ids.append(company)
                     break
         if not url_exist:
+            logger.error("No linkedin url found for the company")
             raise Exception("No linkedin url found for the company")
     # launch the company scraper agent
-    print(company_urls)
+    logger.debug(company_urls)
     company_details = pb_client.scrape_company(company_urls, company_ids)
     for company in company_details:
         try:
             analytics_client.feed_raw_data(company)
-        except HTTPException:
-            raise HTTPException("Can't send crawling data to the Analytics.")
+        except HTTPException as e:
+            logger.error(f"Can't send crawling data to the Analytics. Error: {e}")
+            raise HTTPException(
+                f"Can't send crawling data to the Analytics. Error: {e}"
+            )
     return company_details
 
 
@@ -82,6 +93,7 @@ def discover(query: str):
     """Discovery endpoint for the API."""
     try:
         response = pb_client.discover_company(query)
-    except HTTPException:
-        raise HTTPException("Can't run discovery agent successfully.")
+    except HTTPException as e:
+        logger.error(f"Can't run discovery agent successfully. Error: {e}")
+        raise HTTPException(f"Can't run discovery agent successfully. Error: {e}")
     return response

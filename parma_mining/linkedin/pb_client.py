@@ -2,6 +2,7 @@
 
 This module communicates with the Phantombuster API to discover and scrape
 """
+import logging
 import os
 import time
 
@@ -10,6 +11,8 @@ from dotenv import load_dotenv
 
 from parma_mining.linkedin.model import CompanyModel, DiscoveryModel
 from parma_mining.mining_common.const import HTTP_200
+
+logger = logging.getLogger(__name__)
 
 
 class PhantombusterClient:
@@ -119,8 +122,11 @@ class PhantombusterClient:
         output = response.json()
         result = []
         if len(output) != len(ids):
+            logger.error(
+                "Company count in the output is not equal to company count in the input"
+            )
             raise Exception(
-                "Company coun in the output is not equal to company count in the input"
+                "Company count in the output is not equal to company count in the input"
             )
         for item in output:
             company = CompanyModel.model_validate(
