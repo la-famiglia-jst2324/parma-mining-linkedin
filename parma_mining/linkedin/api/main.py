@@ -1,9 +1,10 @@
 """Main entrypoint for the API routes in of parma-analytics."""
 import json
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 
 from parma_mining.linkedin.api.analytics_client import AnalyticsClient
+from parma_mining.linkedin.api.dependencies.auth import authenticate
 from parma_mining.linkedin.model import CompaniesRequest, CompanyModel, DiscoveryModel
 from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
 from parma_mining.linkedin.pb_client import PhantombusterClient
@@ -22,14 +23,14 @@ def root():
 
 
 @app.get("/initialize", status_code=200)
-def initialize(source_id: int) -> str:
+def initialize(source_id: int, token: str = Depends(authenticate)) -> str:
     """Initialization endpoint for the API."""
     # init frequency
     time = "weekly"
     normalization_map = normalization.get_normalization_map()
     # register the measurements to analytics
     normalization_map = analytics_client.register_measurements(
-        normalization_map, source_module_id=source_id
+        token, normalization_map, source_module_id=source_id
     )[1]
 
     # set and return results
@@ -45,7 +46,9 @@ def initialize(source_id: int) -> str:
     response_model=list[CompanyModel],
     status_code=status.HTTP_200_OK,
 )
-def get_company_info(companies: CompaniesRequest) -> list[CompanyModel]:
+def get_company_info(
+    companies: CompaniesRequest, token: str = Depends(authenticate)
+) -> list[CompanyModel]:
     """Company details endpoint for the API."""
     company_urls = []
     company_ids = []
@@ -66,7 +69,7 @@ def get_company_info(companies: CompaniesRequest) -> list[CompanyModel]:
     company_details = pb_client.scrape_company(company_urls, company_ids)
     for company in company_details:
         try:
-            analytics_client.feed_raw_data(company)
+            analytics_client.feed_raw_data(token, company)
         except HTTPException:
             raise HTTPException("Can't send crawling data to the Analytics.")
     return company_details
@@ -78,7 +81,7 @@ def get_company_info(companies: CompaniesRequest) -> list[CompanyModel]:
     response_model=list[DiscoveryModel],
     status_code=status.HTTP_200_OK,
 )
-def discover(query: str):
+def discover(query: str, token: str = Depends(authenticate)):
     """Discovery endpoint for the API."""
     try:
         response = pb_client.discover_company(query)
