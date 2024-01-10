@@ -25,6 +25,8 @@ def client():
 
 logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
+
 
 @pytest.fixture
 def mock_pb_client(mocker) -> MagicMock:
