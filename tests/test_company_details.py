@@ -6,10 +6,24 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from starlette import status
 
+from parma_mining.linkedin.api.dependencies.auth import authenticate
 from parma_mining.linkedin.api.main import app
 from parma_mining.mining_common.const import HTTP_200, HTTP_404
+from tests.dependencies.mock_auth import mock_authenticate
 
-client = TestClient(app)
+
+@pytest.fixture
+def client():
+    assert app
+    app.dependency_overrides.update(
+        {
+            authenticate: mock_authenticate,
+        }
+    )
+    return TestClient(app)
+
+
+logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +76,7 @@ def mock_analytics_client(mocker) -> MagicMock:
 
 
 def test_get_organization_details(
-    mock_pb_client: MagicMock, mock_analytics_client: MagicMock
+    client: TestClient, mock_pb_client: MagicMock, mock_analytics_client: MagicMock
 ):
     payload = {
         "companies": {
@@ -84,7 +98,7 @@ def test_get_organization_details(
     assert response.status_code == HTTP_200
 
 
-def test_get_organization_details_bad_request(mocker):
+def test_get_organization_details_bad_request(client: TestClient, mocker):
     mocker.patch(
         "parma_mining.linkedin.api.main.PhantombusterClient.scrape_company",
         side_effect=HTTPException(
