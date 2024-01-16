@@ -119,9 +119,10 @@ def get_company_info(
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg)
 
     return analytics_client.crawling_finished(
+        token,
         json.loads(
             CrawlingFinishedInputModel(task_id=task_id, errors=errors).model_dump_json()
-        )
+        ),
     )
 
 

@@ -27,9 +27,8 @@ class AnalyticsClient:
     feed_raw_url = urllib.parse.urljoin(analytics_base, "/feed-raw-data")
     crawling_finished_url = urllib.parse.urljoin(analytics_base, "/crawling-finished")
 
-    def send_post_request(self, token: str, data):
+    def send_post_request(self, token: str, api_endpoint: str, data):
         """Send a post request to the analytics API."""
-        api_endpoint = self.measurement_url
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {token}",
@@ -47,9 +46,9 @@ class AnalyticsClient:
             logger.error(msg)
             raise AnalyticsError(msg)
 
-    def crawling_finished(self, data):
+    def crawling_finished(self, token, data):
         """Notify crawling is finished to the analytics."""
-        return self.send_post_request(self.crawling_finished_url, data)
+        return self.send_post_request(token, self.crawling_finished_url, data)
 
     def register_measurements(
         self, token: str, mapping, parent_id=None, source_module_id=None
@@ -67,7 +66,7 @@ class AnalyticsClient:
                 measurement_data["parent_measurement_id"] = parent_id
 
             measurement_data["source_measurement_id"] = self.send_post_request(
-                token, measurement_data
+                token, self.measurement_url, measurement_data
             )
 
             # add the source measurement id to mapping
