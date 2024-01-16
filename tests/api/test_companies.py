@@ -2,9 +2,8 @@ import logging
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
-from starlette import status
 
 from parma_mining.linkedin.api.dependencies.auth import authenticate
 from parma_mining.linkedin.api.main import app
