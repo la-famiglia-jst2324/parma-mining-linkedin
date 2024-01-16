@@ -61,7 +61,9 @@ def test_send_post_request_failure(mock_post, analytics_client):
         analytics_client.send_post_request(
             TOKEN, "http://example.com", {"data": "test"}
         )
-    assert "API request failed" in str(exc_info.value)
+    assert "API POST request failed with status code 500: Internal Server Error" in str(
+        exc_info.value
+    )
 
 
 @patch("httpx.post")
