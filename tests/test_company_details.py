@@ -25,8 +25,6 @@ def client():
 
 logger = logging.getLogger(__name__)
 
-logger = logging.getLogger(__name__)
-
 
 @pytest.fixture
 def mock_pb_client(mocker) -> MagicMock:
@@ -68,17 +66,25 @@ def mock_pb_client(mocker) -> MagicMock:
 
 
 @pytest.fixture
-def mock_analytics_client(mocker) -> MagicMock:
-    """Mocking the AnalyticClient's method to avoid actual API calls during testing."""
-    mock = mocker.patch("parma_mining.linkedin.api.main.AnalyticsClient.feed_raw_data")
-    # No return value needed, but you can add side effects or exceptions if necessary
-    return mock
+def mock_analytics_client(mocker) -> tuple[MagicMock, MagicMock]:
+    """Mocking the AnalyticsClient's methods."""
+    mock_feed_raw_data = mocker.patch(
+        "parma_mining.linkedin.api.main.AnalyticsClient.feed_raw_data"
+    )
+    mock_crawling_finished = mocker.patch(
+        "parma_mining.linkedin.api.main.AnalyticsClient.crawling_finished"
+    )
+
+    return mock_feed_raw_data, mock_crawling_finished
 
 
 def test_get_organization_details(
     client: TestClient, mock_pb_client: MagicMock, mock_analytics_client: MagicMock
 ):
+    mock_feed_raw_data, mock_crawling_finished = mock_analytics_client
+
     payload = {
+        "task_id": 123,
         "companies": {
             "Example_id1": {
                 "name": ["langfuse"],
@@ -88,12 +94,13 @@ def test_get_organization_details(
                 "name": ["personio"],
                 "url": ["www.linkedin.com/company/personio"],
             },
-        }
+        },
     }
 
     response = client.post("/companies", json=payload)
 
-    mock_analytics_client.assert_called()
+    mock_feed_raw_data.assert_called()
+    mock_crawling_finished.assert_called()
 
     assert response.status_code == HTTP_200
 
@@ -107,6 +114,7 @@ def test_get_organization_details_bad_request(client: TestClient, mocker):
     )
 
     payload = {
+        "task_id": 123,
         "companies": {
             "Example_id1": {
                 "name": ["langfuse"],
@@ -116,7 +124,7 @@ def test_get_organization_details_bad_request(client: TestClient, mocker):
                 "name": ["personio"],
                 "url": ["www.linkedin.com/company/personio"],
             },
-        }
+        },
     }
     response = client.post("/companies", json=payload)
     assert response.status_code == HTTP_404
