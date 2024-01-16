@@ -77,7 +77,7 @@ def mock_analytics_client(mocker) -> tuple[MagicMock, MagicMock]:
     return mock_feed_raw_data, mock_crawling_finished
 
 
-def test_get_organization_details(
+def test_companies_success(
     client: TestClient, mock_pb_client: MagicMock, mock_analytics_client: MagicMock
 ):
     mock_feed_raw_data, mock_crawling_finished = mock_analytics_client
@@ -100,11 +100,12 @@ def test_get_organization_details(
 
     mock_feed_raw_data.assert_called()
     mock_crawling_finished.assert_called()
+    mock_pb_client.assert_called()
 
     assert response.status_code == HTTP_200
 
 
-def test_get_organization_details_bad_request(client: TestClient, mocker):
+def test_companies_bad_request(client: TestClient, mocker):
     mocker.patch(
         "parma_mining.linkedin.api.main.PhantombusterClient.scrape_company",
         side_effect=HTTPException(
