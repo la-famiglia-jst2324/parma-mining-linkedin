@@ -21,7 +21,7 @@ dev:
 
 test:
 	pytest tests/
-	coverage html && open htmlcov/index.html
+	#coverage html && open htmlcov/index.html
 
 purge-db:
 	# TODO

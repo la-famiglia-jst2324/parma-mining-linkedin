@@ -138,6 +138,7 @@ def discover(query: str, token: str = Depends(authenticate)):
     try:
         response = pb_client.discover_company(query)
     except HTTPException as e:
-        logger.error(f"Can't run discovery agent successfully. Error: {e}")
-        raise HTTPException(f"Can't run discovery agent successfully. Error: {e}")
+        msg = f"Can't run discovery agent successfully. Error: {str(e)}"
+        logger.error(msg)
+        raise HTTPException(status_code=e.status_code, detail=msg)
     return response
