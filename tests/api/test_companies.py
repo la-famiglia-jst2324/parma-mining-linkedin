@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from parma_mining.linkedin.api.dependencies.auth import authenticate
 from parma_mining.linkedin.api.main import app
-from parma_mining.mining_common.const import HTTP_200, HTTP_404
+from parma_mining.mining_common.const import HTTP_200, HTTP_404, HTTP_500
 from tests.dependencies.mock_auth import mock_authenticate
 
 
@@ -128,3 +128,62 @@ def test_companies_bad_request(client: TestClient, mocker):
     }
     response = client.post("/companies", json=payload)
     assert response.status_code == HTTP_404
+
+
+def test_companies_no_linkedin_url(
+    client: TestClient, mock_pb_client: MagicMock, mock_analytics_client: MagicMock
+):
+    mock_feed_raw_data, mock_crawling_finished = mock_analytics_client
+
+    payload = {
+        "task_id": 123,
+        "companies": {
+            "Example_id1": {
+                "name": ["company1"],
+                "url": ["http://www.example.com/company1"],
+            },
+            "Example_id2": {
+                "name": ["company2"],
+                "url": ["http://www.example.com/company2"],
+            },
+        },
+    }
+
+    mock_pb_client.return_value = []
+    mock_feed_raw_data.return_value = None
+    mock_crawling_finished.return_value = []
+
+    response = client.post("/companies", json=payload)
+    assert response.status_code == HTTP_200
+    mock_pb_client.assert_called()
+    mock_crawling_finished.assert_called()
+
+
+def test_companies_http_exception_in_analytics(
+    client: TestClient, mock_pb_client: MagicMock, mocker
+):
+    mocker.patch(
+        "parma_mining.linkedin.api.main.AnalyticsClient.feed_raw_data",
+        side_effect=HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Analytics server error",
+        ),
+    )
+
+    payload = {
+        "task_id": 123,
+        "companies": {
+            "Example_id1": {
+                "name": ["langfuse"],
+                "url": ["www.linkedin.com/company/langfuse"],
+            },
+            "Example_id2": {
+                "name": ["personio"],
+                "url": ["www.linkedin.com/company/personio"],
+            },
+        },
+    }
+
+    response = client.post("/companies", json=payload)
+    assert response.status_code == HTTP_500
+    assert "Can't send crawling data to the Analytics" in response.json()["detail"]
