@@ -11,7 +11,7 @@ import httpx
 from dotenv import load_dotenv
 
 from parma_mining.linkedin.model import CompanyModel
-from parma_mining.mining_common.const import HTTP_201, HTTP_404
+from parma_mining.mining_common.const import HTTP_200, HTTP_201, HTTP_404
 from parma_mining.mining_common.exceptions import AnalyticsError
 
 logger = logging.getLogger(__name__)
@@ -35,8 +35,8 @@ class AnalyticsClient:
         }
         response = httpx.post(api_endpoint, json=data, headers=headers)
 
-        if response.status_code == HTTP_201:
-            return response.json().get("id")
+        if response.status_code in [HTTP_200, HTTP_201]:
+            return response.json()
         else:
             msg = (
                 f"API POST request failed "
@@ -67,7 +67,7 @@ class AnalyticsClient:
 
             measurement_data["source_measurement_id"] = self.send_post_request(
                 token, self.measurement_url, measurement_data
-            )
+            ).get("id")
 
             # add the source measurement id to mapping
             field_mapping["source_measurement_id"] = measurement_data[
