@@ -7,9 +7,16 @@ from fastapi import Depends, FastAPI, HTTPException, status
 
 from parma_mining.linkedin.api.analytics_client import AnalyticsClient
 from parma_mining.linkedin.api.dependencies.auth import authenticate
-from parma_mining.linkedin.model import CompaniesRequest, CompanyModel, DiscoveryModel
+from parma_mining.linkedin.model import (
+    CompaniesRequest,
+    CompanyModel,
+    DiscoveryModel,
+    ErrorInfoModel,
+)
 from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
 from parma_mining.linkedin.pb_client import PhantombusterClient
+from parma_mining.mining_common.exceptions import ClientInvalidBodyError
+from parma_mining.mining_common.helper import collect_errors
 
 env = os.getenv("DEPLOYMENT_ENV", "local")
 
@@ -26,7 +33,6 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-pb_client = PhantombusterClient()
 analytics_client = AnalyticsClient()
 normalization = LinkedinNormalizationMap()
 
@@ -62,27 +68,47 @@ def initialize(source_id: int, token: str = Depends(authenticate)) -> str:
     status_code=status.HTTP_200_OK,
 )
 def get_company_info(
-    companies: CompaniesRequest, token: str = Depends(authenticate)
+    body: CompaniesRequest, token: str = Depends(authenticate)
 ) -> list[CompanyModel]:
     """Company details endpoint for the API."""
+    task_id: int = body.task_id
+    errors: dict[str, ErrorInfoModel] = {}
+    pb_client = PhantombusterClient(errors)
+
     company_urls = []
     company_ids = []
-    for company in companies.companies:
-        # iterate all input items and find a linkedin url
+
+    for company_id, company_data in body.companies.items():
+        # iterate all input items and find a LinkedIn url
         url_exist = False
-        for field in companies.companies[company]:
-            for url in companies.companies[company][field]:
-                if "linkedin.com/" in url:
+        for data_type, handles in company_data.items():
+            for handle in handles:
+                if "linkedin.com/" in handle:
                     url_exist = True
-                    company_urls.append(url)
-                    company_ids.append(company)
+                    company_urls.append(handle)
+                    company_ids.append(company_id)
                     break
         if not url_exist:
-            logger.error("No linkedin url found for the company")
-            raise Exception("No linkedin url found for the company")
+            msg = (
+                f"No linkedin url found for "
+                f"task_id: {task_id} and company_id: {company_id}"
+            )
+            logger.error(msg)
+            e = ClientInvalidBodyError(msg)
+            collect_errors(company_id, errors, e)
+
+    logger.debug(
+        f"Launching the company scraper agent with "
+        f"task_id: {task_id}, "
+        f"company_urls: {company_urls}, "
+        f"company_ids: {company_ids}, "
+        f"error: {errors}"
+    )
+
     # launch the company scraper agent
-    logger.debug(company_urls)
-    company_details = pb_client.scrape_company(company_urls, company_ids)
+    company_details: list[CompanyModel] = pb_client.scrape_company(
+        company_urls, company_ids
+    )
     for company in company_details:
         try:
             analytics_client.feed_raw_data(token, company)
@@ -101,6 +127,8 @@ def get_company_info(
 )
 def discover(query: str, token: str = Depends(authenticate)):
     """Discovery endpoint for the API."""
+    errors: dict[str, ErrorInfoModel] = {}
+    pb_client = PhantombusterClient(errors)
     try:
         response = pb_client.discover_company(query)
     except HTTPException as e:
