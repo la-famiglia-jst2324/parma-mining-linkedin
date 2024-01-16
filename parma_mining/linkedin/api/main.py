@@ -10,6 +10,7 @@ from parma_mining.linkedin.api.dependencies.auth import authenticate
 from parma_mining.linkedin.model import (
     CompaniesRequest,
     CompanyModel,
+    CrawlingFinishedInputModel,
     DiscoveryModel,
     ErrorInfoModel,
 )
@@ -113,11 +114,15 @@ def get_company_info(
         try:
             analytics_client.feed_raw_data(token, company)
         except HTTPException as e:
-            logger.error(f"Can't send crawling data to the Analytics. Error: {e}")
-            raise HTTPException(
-                f"Can't send crawling data to the Analytics. Error: {e}"
-            )
-    return company_details
+            msg = f"Can't send crawling data to the Analytics. Error: {str(e)}"
+            logger.error(msg)
+            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg)
+
+    return analytics_client.crawling_finished(
+        json.loads(
+            CrawlingFinishedInputModel(task_id=task_id, errors=errors).model_dump_json()
+        )
+    )
 
 
 @app.get(

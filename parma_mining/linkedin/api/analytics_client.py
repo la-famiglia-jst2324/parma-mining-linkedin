@@ -3,6 +3,7 @@
 This module sends normalization data and raw data to analytics.
 """
 import json
+import logging
 import os
 import urllib.parse
 
@@ -11,8 +12,9 @@ from dotenv import load_dotenv
 
 from parma_mining.linkedin.model import CompanyModel
 from parma_mining.mining_common.const import HTTP_201, HTTP_404
+from parma_mining.mining_common.exceptions import AnalyticsError
 
-# create a docstring for the class
+logger = logging.getLogger(__name__)
 
 
 class AnalyticsClient:
@@ -23,6 +25,7 @@ class AnalyticsClient:
 
     measurement_url = urllib.parse.urljoin(analytics_base, "/source-measurement")
     feed_raw_url = urllib.parse.urljoin(analytics_base, "/feed-raw-data")
+    crawling_finished_url = urllib.parse.urljoin(analytics_base, "/crawling-finished")
 
     def send_post_request(self, token: str, data):
         """Send a post request to the analytics API."""
@@ -36,9 +39,17 @@ class AnalyticsClient:
         if response.status_code == HTTP_201:
             return response.json().get("id")
         else:
-            raise Exception(
-                f"API request failed with status code {response.status_code}"
+            msg = (
+                f"API POST request failed "
+                f"with status code {response.status_code}: "
+                f"{response.text}"
             )
+            logger.error(msg)
+            raise AnalyticsError(msg)
+
+    def crawling_finished(self, data):
+        """Notify crawling is finished to the analytics."""
+        return self.send_post_request(self.crawling_finished_url, data)
 
     def register_measurements(
         self, token: str, mapping, parent_id=None, source_module_id=None
