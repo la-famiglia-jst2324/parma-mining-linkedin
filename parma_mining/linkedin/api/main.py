@@ -56,7 +56,6 @@ def initialize(source_id: int, token: str = Depends(authenticate)) -> str:
     return json.dumps(results)
 
 
-# endpoint for collecting results
 @app.post(
     "/companies",
     response_model=list[CompanyModel],
@@ -95,7 +94,6 @@ def get_company_info(
     return company_details
 
 
-# endpoint for launching the company scraper agent
 @app.get(
     "/discover",
     response_model=list[DiscoveryModel],
