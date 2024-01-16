@@ -11,7 +11,7 @@ from parma_mining.linkedin.model import CompaniesRequest, CompanyModel, Discover
 from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
 from parma_mining.linkedin.pb_client import PhantombusterClient
 
-env = os.getenv("env", "local")
+env = os.getenv("DEPLOYMENT_ENV", "local")
 
 if env == "prod":
     logging.basicConfig(level=logging.INFO)
