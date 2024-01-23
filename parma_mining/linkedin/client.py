@@ -26,7 +26,7 @@ class LinkedinClient:
         """Initialize the LinkedinClient class."""
         load_dotenv()
         self.key = str(os.getenv("APIFY_API_KEY") or "")
-        self.cookie = self.parse_json_string(str(os.getenv("LINKEDIN_COOKIE") or ""))
+        self.cookie = self.parse_json_string(str(os.getenv("LINKEDIN_COOKIE") or "{}"))
         self.actor_id = str(os.getenv("APIFY_ACTOR_ID") or "")
         self.maximum_runtime_scraping_seconds = 600  # 10 minutes
 
