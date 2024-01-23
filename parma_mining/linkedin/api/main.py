@@ -2,21 +2,27 @@
 import json
 import logging
 import os
+from datetime import datetime, timedelta
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, status
 
 from parma_mining.linkedin.api.analytics_client import AnalyticsClient
 from parma_mining.linkedin.api.dependencies.auth import authenticate
+from parma_mining.linkedin.client import LinkedinClient
 from parma_mining.linkedin.model import (
     CompaniesRequest,
-    CompanyModel,
     CrawlingFinishedInputModel,
-    DiscoveryModel,
+    DiscoveryRequest,
     ErrorInfoModel,
+    FinalDiscoveryResponse,
+    ResponseModel,
 )
 from parma_mining.linkedin.normalization_map import LinkedinNormalizationMap
-from parma_mining.linkedin.pb_client import PhantombusterClient
-from parma_mining.mining_common.exceptions import ClientInvalidBodyError
+from parma_mining.mining_common.exceptions import (
+    AnalyticsError,
+    ClientInvalidBodyError,
+    CrawlingError,
+)
 from parma_mining.mining_common.helper import collect_errors
 
 env = os.getenv("DEPLOYMENT_ENV", "local")
@@ -36,6 +42,7 @@ app = FastAPI()
 
 analytics_client = AnalyticsClient()
 normalization = LinkedinNormalizationMap()
+linkedin_client = LinkedinClient()
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
@@ -65,80 +72,80 @@ def initialize(source_id: int, token: str = Depends(authenticate)) -> str:
 
 @app.post(
     "/companies",
-    response_model=list[CompanyModel],
     status_code=status.HTTP_200_OK,
 )
-def get_company_info(
-    body: CompaniesRequest, token: str = Depends(authenticate)
-) -> list[CompanyModel]:
-    """Company details endpoint for the API."""
-    task_id: int = body.task_id
+def get_company_info(body: CompaniesRequest, token: str = Depends(authenticate)):
+    """Endpoint to get detailed information about a dict of organizations."""
     errors: dict[str, ErrorInfoModel] = {}
-    pb_client = PhantombusterClient(errors)
-
-    company_urls = []
-    company_ids = []
-
     for company_id, company_data in body.companies.items():
-        # iterate all input items and find a LinkedIn url
-        url_exist = False
         for data_type, handles in company_data.items():
             for handle in handles:
-                if "linkedin.com/" in handle:
-                    url_exist = True
-                    company_urls.append(handle)
-                    company_ids.append(company_id)
-                    break
-        if not url_exist:
-            msg = (
-                f"No linkedin url found for "
-                f"task_id: {task_id} and company_id: {company_id}"
-            )
-            logger.error(msg)
-            e = ClientInvalidBodyError(msg)
-            collect_errors(company_id, errors, e)
+                if data_type == "urls":
+                    try:
+                        if "linkedin.com/" in handle:
+                            org_details = linkedin_client.get_company_details([handle])
+                            print(org_details)
+                        else:
+                            logger.error(f"Not a valid Linkedin url: {handle}")
+                    except CrawlingError as e:
+                        logger.error(
+                            f"Can't fetch company details from Linkedin Error: {e}"
+                        )
+                        collect_errors(company_id, errors, e)
+                        continue
 
-    logger.debug(
-        f"Launching the company scraper agent with "
-        f"task_id: {task_id}, "
-        f"company_urls: {company_urls}, "
-        f"company_ids: {company_ids}, "
-        f"error: {errors}"
-    )
+                    data = ResponseModel(
+                        source_name="linkedin",
+                        company_id=company_id,
+                        raw_data=org_details,
+                    )
+                    # Write data to db via endpoint in analytics backend
+                    try:
+                        analytics_client.feed_raw_data(token, data)
+                    except AnalyticsError as e:
+                        logger.error(
+                            f"Can't send crawling data to the Analytics. Error: {e}"
+                        )
+                        collect_errors(company_id, errors, e)
 
-    # launch the company scraper agent
-    company_details: list[CompanyModel] = pb_client.scrape_company(
-        company_urls, company_ids
-    )
-    for company in company_details:
-        try:
-            analytics_client.feed_raw_data(token, company)
-        except HTTPException as e:
-            msg = f"Can't send crawling data to the Analytics. Error: {str(e)}"
-            logger.error(msg)
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=msg)
+                else:
+                    msg = f"Unsupported type error for {data_type} in {handle}"
+                    logger.error(msg)
+                    collect_errors(company_id, errors, ClientInvalidBodyError(msg))
 
     return analytics_client.crawling_finished(
         token,
         json.loads(
-            CrawlingFinishedInputModel(task_id=task_id, errors=errors).model_dump_json()
+            CrawlingFinishedInputModel(
+                task_id=body.task_id, errors=errors
+            ).model_dump_json()
         ),
     )
 
 
-@app.get(
+@app.post(
     "/discover",
-    response_model=list[DiscoveryModel],
+    response_model=FinalDiscoveryResponse,
     status_code=status.HTTP_200_OK,
 )
-def discover(query: str, token: str = Depends(authenticate)):
-    """Discovery endpoint for the API."""
-    errors: dict[str, ErrorInfoModel] = {}
-    pb_client = PhantombusterClient(errors)
-    try:
-        response = pb_client.discover_company(query)
-    except HTTPException as e:
-        msg = f"Can't run discovery agent successfully. Error: {str(e)}"
+def discover_companies(
+    request: list[DiscoveryRequest], token: str = Depends(authenticate)
+):
+    """Endpoint to discover organizations based on provided names."""
+    if not request:
+        msg = "Request body cannot be empty for discovery"
         logger.error(msg)
-        raise HTTPException(status_code=e.status_code, detail=msg)
-    return response
+        raise ClientInvalidBodyError(msg)
+
+    response_data = {}
+    for company in request:
+        logger.debug(
+            f"Discovering with name: {company.name} for company_id {company.company_id}"
+        )
+        response = linkedin_client.discover_company(company.name)
+        response_data[company.company_id] = response
+
+    current_date = datetime.now()
+    valid_until = current_date + timedelta(days=180)
+
+    return FinalDiscoveryResponse(identifiers=response_data, validity=valid_until)
