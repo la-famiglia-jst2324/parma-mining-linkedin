@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from fastapi import Depends, FastAPI, status
 
-from parma_mining.linkedin.api.analytics_client import AnalyticsClient
+from parma_mining.linkedin.analytics_client import AnalyticsClient
 from parma_mining.linkedin.api.dependencies.auth import authenticate
 from parma_mining.linkedin.client import LinkedinClient
 from parma_mining.linkedin.model import (
@@ -84,7 +84,6 @@ def get_company_info(body: CompaniesRequest, token: str = Depends(authenticate))
                     try:
                         if "linkedin.com/" in handle:
                             org_details = linkedin_client.get_company_details([handle])
-                            print(org_details)
                         else:
                             logger.error(f"Not a valid Linkedin url: {handle}")
                     except CrawlingError as e:

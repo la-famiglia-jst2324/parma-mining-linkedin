@@ -3,7 +3,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from parma_mining.linkedin.api.analytics_client import AnalyticsClient
+from parma_mining.linkedin.analytics_client import AnalyticsClient
 from parma_mining.linkedin.model import CompanyModel, ResponseModel
 from parma_mining.mining_common.const import HTTP_200, HTTP_500
 

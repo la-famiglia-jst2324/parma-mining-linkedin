@@ -40,14 +40,12 @@ class LinkedinClient:
         Take name as an input and find its linkedin url.
         """
         search_query = query + " linkedin"
-        print(search_query)
         preferred_slash_count = 4
         urls = []
         try:
             for search_item in search(
                 search_query, tld="co.in", num=10, stop=10, pause=2
             ):
-                print(search_item)
                 if (
                     search_item.count("/") == preferred_slash_count
                     and "https://www.linkedin.com/company/" in search_item
@@ -77,7 +75,6 @@ class LinkedinClient:
             # Run the Actor and wait for it to finish
             run = client.actor(self.actor_id).call(run_input=run_input)
 
-            # Fetch and print Actor results from the run's dataset (if there are any)
             for item in client.dataset(run["defaultDatasetId"]).iterate_items():
                 company_data = {
                     "name": item["name"],
