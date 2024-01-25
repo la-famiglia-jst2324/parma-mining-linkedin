@@ -84,7 +84,6 @@ def get_company_info(body: CompaniesRequest, token: str = Depends(authenticate))
                     try:
                         if "linkedin.com/" in handle:
                             org_details = linkedin_client.get_company_details([handle])
-                            print(org_details)
                         else:
                             logger.error(f"Not a valid Linkedin url: {handle}")
                     except CrawlingError as e:
