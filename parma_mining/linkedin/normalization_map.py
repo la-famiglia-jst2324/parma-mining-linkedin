@@ -8,7 +8,7 @@ class LinkedinNormalizationMap:
     """Class for normalization map."""
 
     map_json = {
-        "Source": "Linkedin",
+        "Source": "linkedin",
         "Mappings": [
             {
                 "SourceField": "name",
@@ -22,7 +22,7 @@ class LinkedinNormalizationMap:
             },
             {
                 "SourceField": "profile_url",
-                "DataType": "text",
+                "DataType": "link",
                 "MeasurementName": "linkedin profile url",
             },
             {
@@ -42,7 +42,7 @@ class LinkedinNormalizationMap:
             },
             {
                 "SourceField": "job_search_url",
-                "DataType": "text",
+                "DataType": "link",
                 "MeasurementName": "url for job search",
             },
             {
@@ -62,12 +62,12 @@ class LinkedinNormalizationMap:
             },
             {
                 "SourceField": "website",
-                "DataType": "text",
+                "DataType": "link",
                 "MeasurementName": "website of company",
             },
             {
                 "SourceField": "logo_url",
-                "DataType": "text",
+                "DataType": "link",
                 "MeasurementName": "logo url of company",
             },
             {
