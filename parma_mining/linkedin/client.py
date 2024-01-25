@@ -77,7 +77,6 @@ class LinkedinClient:
 
             for item in client.dataset(run["defaultDatasetId"]).iterate_items():
                 company_data = {
-
                     "name": item["name"] if "name" in item else None,
                     "linkedin_id": item["id"] if "id" in item else None,
                     "website": item["websiteUrl"] if "websiteUrl" in item else None,
