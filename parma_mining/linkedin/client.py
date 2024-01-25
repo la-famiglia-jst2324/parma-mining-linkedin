@@ -95,13 +95,13 @@ class LinkedinClient:
                     "universal_name": item["universalName"],
                     "specialities": item["specialities"],
                     "headquarter_city": item["headquarter"]["city"]
-                    if item["headquarter"] is not None
+                    if "headquarter" in item
                     else None,
                     "headquarter_country": item["headquarter"]["country"]
-                    if item["headquarter"] is not None
+                    if "headquarter" in item
                     else None,
                     "head_quarter_postal_code": item["headquarter"]["postalCode"]
-                    if item["headquarter"] is not None
+                    if "headquarter" in item
                     else None,
                     "industries": [industry["name"] for industry in item["industries"]]
                     if item["industries"] is not None
