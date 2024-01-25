@@ -13,6 +13,10 @@ dependencies:
   # Development
   - types-pyyaml
   - python-dotenv >=1.0.0
+  - pip:
+      - apify-client
+      - beautifulsoup4
+      - google
   # Testing
   - pytest >=6 # --import-mode option
   - pytest-cov
