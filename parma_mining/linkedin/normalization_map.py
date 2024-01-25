@@ -8,7 +8,7 @@ class LinkedinNormalizationMap:
     """Class for normalization map."""
 
     map_json = {
-        "Source": "Linkedin",
+        "Source": "linkedin",
         "Mappings": [
             {
                 "SourceField": "name",
