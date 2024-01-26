@@ -77,23 +77,35 @@ class LinkedinClient:
 
             for item in client.dataset(run["defaultDatasetId"]).iterate_items():
                 company_data = {
-                    "name": item["name"],
-                    "linkedin_id": item["id"],
-                    "website": item["websiteUrl"],
-                    "profile_url": item["url"],
-                    "ads_rule": item["adsRule"],
-                    "employee_count": item["employeeCount"],
-                    "active": item["active"],
-                    "job_search_url": item["jobSearchUrl"],
+                    "name": item["name"] if "name" in item else None,
+                    "linkedin_id": item["id"] if "id" in item else None,
+                    "website": item["websiteUrl"] if "websiteUrl" in item else None,
+                    "profile_url": item["url"] if "url" in item else None,
+                    "ads_rule": item["adsRule"] if "adsRule" in item else None,
+                    "employee_count": item["employeeCount"]
+                    if "employeeCount" in item
+                    else None,
+                    "active": item["active"] if "active" in item else None,
+                    "job_search_url": item["jobSearchUrl"]
+                    if "jobSearchUrl" in item
+                    else None,
                     "phone": item["phone"]["number"]
                     if item["phone"] is not None
                     else None,
-                    "tagline": item["tagline"],
-                    "description": item["description"],
-                    "logo_url": item["logoUrl"],
-                    "follower_count": item["followerCount"],
-                    "universal_name": item["universalName"],
-                    "specialities": item["specialities"],
+                    "tagline": item["tagline"] if "tagline" in item else None,
+                    "description": item["description"]
+                    if "description" in item
+                    else None,
+                    "logo_url": item["logoUrl"] if "logoUrl" in item else None,
+                    "follower_count": item["followerCount"]
+                    if "followerCount" in item
+                    else None,
+                    "universal_name": item["universalName"]
+                    if "universalName" in item
+                    else None,
+                    "specialities": item["specialities"]
+                    if "specialities" in item
+                    else None,
                     "headquarter_city": item["headquarter"]["city"]
                     if "headquarter" in item
                     else None,
