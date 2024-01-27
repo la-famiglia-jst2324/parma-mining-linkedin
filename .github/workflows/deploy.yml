@@ -20,6 +20,11 @@ env:
   # Analytics and Sourcing (AS) Auth Flow
   TF_VAR_PARMA_SHARED_SECRET_KEY: ${{ github.event_name == 'release' && secrets.PROD_PARMA_SHARED_SECRET_KEY || secrets.STAGING_PARMA_SHARED_SECRET_KEY}}
 
+  # Linkedin
+  TF_VAR_APIFY_API_KEY: ${{ github.event_name == 'release' && secrets.PROD_APIFY_API_KEY || secrets.STAGING_APIFY_API_KEY}}
+  TF_VAR_APIFY_ACTOR_ID: ${{ github.event_name == 'release' && vars.PROD_APIFY_ACTOR_ID || vars.STAGING_APIFY_ACTOR_ID}}
+  TF_VAR_LINKEDIN_COOKIE: ${{ github.event_name == 'release' && secrets.PROD_LINKEDIN_COOKIE || secrets.STAGING_LINKEDIN_COOKIE}}
+
 jobs:
   deploy:
     name: Deploy - ${{ matrix.DEPLOYMENT_ENV }}

@@ -56,6 +56,18 @@ resource "google_cloud_run_service" "parma_mining_linkedin_cloud_run" {
           name  = "DEPLOYMENT_ENV"
           value = var.env
         }
+        env {
+          name  = "APIFY_API_KEY"
+          value = var.APIFY_API_KEY
+        }
+        env {
+          name  = "APIFY_ACTOR_ID"
+          value = var.APIFY_ACTOR_ID
+        }
+        env {
+          name  = "LINKEDIN_COOKIE"
+          value = var.LINKEDIN_COOKIE
+        }
       }
     }
 
