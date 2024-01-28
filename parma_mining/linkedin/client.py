@@ -43,11 +43,25 @@ class LinkedinClient:
         preferred_slash_count = 4
         urls = []
         try:
+            user_agent = (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36"
+            )
             for search_item in search(
-                search_query, tld="co.in", num=10, stop=10, pause=2
+                search_query,
+                tld="co.in",
+                num=10,
+                stop=10,
+                pause=5,
+                user_agent=user_agent,
             ):
+                print(search_item)
                 if (
                     search_item.count("/") == preferred_slash_count
+                    or (
+                        search_item.count("/") == preferred_slash_count + 1
+                        and search_item.endswith("/")
+                    )
                     and "https://www.linkedin.com/company/" in search_item
                 ):
                     urls.append(search_item)
