@@ -5,7 +5,7 @@
 [![Deploy](https://github.com/la-famiglia-jst2324/parma-mining-linkedin/actions/workflows/release.yml/badge.svg)](https://github.com/la-famiglia-jst2324/parma-mining-linkedin/actions/workflows/release.yml)
 [![Major Tag](https://github.com/la-famiglia-jst2324/parma-mining-linkedin/actions/workflows/tag-major.yml/badge.svg)](https://github.com/la-famiglia-jst2324/parma-mining-linkedin/actions/workflows/tag-major.yml)
 
-ParmaAI mining module for the linkedin CRM.
+ParmaAI mining module for Linkedin. This module collects data from Linkedin by using Apify and provides these data to Parma Analytics.
 
 ## Getting Started
 
@@ -80,6 +80,7 @@ The following steps will get you started with the project.
 .
 ├── parma_mining.linkedin: Main sourcing code
 │   └── api: FastAPI REST API
+│   └── mining_common: Collection of common classes to be used in the repo.
 ├─ tests: Tests for mining module
 ├── Makefile: Recipes for easy simplified setup and local development
 ├── README.md
@@ -88,7 +89,7 @@ The following steps will get you started with the project.
 └── pyproject.toml: Python project configuration file
 ```
 
-## Tech Stack
+## Tech Stack and Dependencies
 
 Core libraries that this project uses:
 
@@ -97,12 +98,94 @@ Core libraries that this project uses:
 - [Typer](https://typer.tiangolo.com/): Typer is a library for building CLI applications that users will love using and developers will love creating.
 - [Polars](https://pola.rs): Polars is a blazingly fast data processing library written in Rust. It has a DataFrame API that is similar to Pandas and a Series API that is similar to NumPy.
 - [Pytest](https://docs.pytest.org/en/6.2.x/): The pytest framework makes it easy to write small tests, yet scales to support complex functional testing for applications and libraries.
+- [Python-Jose](https://python-jose.readthedocs.io/en/latest/): The JavaScript Object Signing and Encryption (JOSE) technologies collectively can be used to encrypt and/or sign content using a variety of algorithms.
+- [HTTPX](https://www.python-httpx.org/): HTTPX is a fully featured HTTP client for Python 3, which provides sync and async APIs, and support for both HTTP/1.1 and HTTP/2.
+- [Apify Client](https://github.com/apify/apify-client-python): The Apify API Client for Python is the official library to access the Apify API from your Python applications. It provides useful features like automatic retries and convenience functions to improve your experience with the Apify API.
+- [Google](https://pypi.org/project/google/): The Google module provides the opportunity to perform Google searches with Python.
 
 ## Deployment
 
 No deployment pipeline has been set up yet.
 
 Currently we are considering several backend frameworks like `Firebase`, `Supabase` or `AWS Amplify`.
+
+## Module Interface
+
+### **Endpoint 1: Initialize**
+
+**Path: `/initialize`**
+
+**Method: GET**
+
+**Description:**
+This endpoint initializes the module, that will be done during the handshake with Parma Analytics. It indroduces data format to analytics.
+
+**Input:**
+
+- **Type**: integer
+- **Content**: Source id of the module
+
+**Output:**
+
+- **Type**: JSON response
+- **Content**: Frequency of module and the normalization map of the data format.
+
+### **Endpoint 2: Discovery**
+
+**Path: `/discover`**
+
+**Method: POST**
+
+**Description:**
+This endpoint allows clients to search for identifiers based on a query string. It is designed to facilitate the discovery of organizations, domains, channels etc. by keyword.
+
+**Input:**
+
+- **Type**: JSON body
+- **Content**: A dict containing company ids and names.
+
+**Output:**
+
+- **Type**: JSON response
+- **Content**: An object that contains information about an organization/domain/etc. that matches the search query.
+
+### **Endpoint 3: Get Company Details**
+
+**Path: `/companies`**
+
+**Method: POST**
+
+**Description:**
+This endpoint retrieves detailed information about a list of companies using their unique IDs and feed the collected raw data to analytics backend.
+
+**Input:**
+
+- **Type**: JSON body
+- **Content**: A dictionary of companies and relative handles for these companies.
+
+**Output:**
+HTTP status OK
+
+## Additional
+
+### Refreshing Linkedin Cookie:
+
+Performance and outputs of Linkedin module is highly depends on the Linkedin cookies. Cookies are used to mocking browser behaviour.Although currently used cookies are long-lasting, they may expire or become invalid. In such a case, cookies must be renewed.
+
+**Dependency:**
+
+- [EditThisCookie](https://www.editthiscookie.com/): EditThisCookie is a cookie manager. One can add, delete, edit, search, protect and block cookies!
+
+**Instructions**
+Follow these steps to get the cookies:
+
+- Install EditThisCookie chrome extension
+- Login to your Linkedin account
+- Click on the extension and export the Linkedin cookies
+
+[How to get cookies](https://www.youtube.com/watch?v=YuKp9BlVgNM)
+
+After cookies are collected, they can be used as environment variables with the name `LINKEDIN_COOKIE`
 
 ## Disclaimer
 
