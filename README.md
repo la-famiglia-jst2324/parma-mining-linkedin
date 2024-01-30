@@ -102,6 +102,7 @@ Core libraries that this project uses:
 - [HTTPX](https://www.python-httpx.org/): HTTPX is a fully featured HTTP client for Python 3, which provides sync and async APIs, and support for both HTTP/1.1 and HTTP/2.
 - [Apify Client](https://github.com/apify/apify-client-python): The Apify API Client for Python is the official library to access the Apify API from your Python applications. It provides useful features like automatic retries and convenience functions to improve your experience with the Apify API.
 - [Google](https://pypi.org/project/google/): The Google module provides the opportunity to perform Google searches with Python.
+- [Beautiful Soup](https://beautiful-soup-4.readthedocs.io/en/latest/): Beautiful Soup is a Python library for pulling data out of HTML and XML files.
 
 ## Deployment
 
