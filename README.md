@@ -143,7 +143,7 @@ We maintain two primary environments for our application:
 **Method: GET**
 
 **Description:**
-This endpoint initializes the module, that will be done during the handshake with Parma Analytics. It indroduces data format to analytics.
+This endpoint initializes the module, that will be done during the handshake with Parma Analytics. It introduces data format to analytics. This process includes registering the measurements which are defined in the normalization map.
 
 **Input:**
 
@@ -162,7 +162,7 @@ This endpoint initializes the module, that will be done during the handshake wit
 **Method: POST**
 
 **Description:**
-This endpoint allows clients to search for identifiers based on a query string. It is designed to facilitate the discovery of organizations, domains, channels etc. by keyword.
+This endpoint allows clients to search for identifiers based on a query string. It is designed to facilitate the discovery of organizations, domains, channels etc. by keyword. For this module, this endpoint takes name of the company as parameter and returns the Linkedin profile url of the company.
 
 **Input:**
 
@@ -195,7 +195,7 @@ HTTP status OK
 
 ### Refreshing Linkedin Cookie:
 
-Performance and outputs of Linkedin module is highly depends on the Linkedin cookies. Cookies are used to mocking browser behaviour.Although currently used cookies are long-lasting, they may expire or become invalid. In such a case, cookies must be renewed.
+Performance and outputs of Linkedin module highly depends on the Linkedin cookies. Cookies are used to mock browser behaviour. Although currently used cookies are long-lasting, they may expire or become invalid. In such a case, cookies must be renewed.
 
 **Dependency:**
 
